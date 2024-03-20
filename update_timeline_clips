@@ -1,0 +1,3 @@
+local mediaStorage = resolve:GetMediaStorage()
+local mediaPool = resolve:GetProjectManager():GetCurrentProject():GetMediaPool()
+local rootFolder = mediaPool:GetRootFolder()
