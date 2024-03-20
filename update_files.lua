@@ -177,10 +177,10 @@ if RunImport then
         for i = #fileList, 1, -1 do
             local files = fileList[i]
             local fileName = string.match(files, "[^\\]+$")
-            print("checking " .. fileName)
+            --print("checking " .. fileName)
             local alreadyExists = CheckFiles(fileName, currentClips)
             if alreadyExists then
-                print("removed item: " .. fileName)
+                --print("removed item: " .. fileName)
                 RemoveItemFromArray(files, fileList)
             end
         end
@@ -195,7 +195,7 @@ if RunImport then
         if importedClips and #importedClips > 0 then
 
             for _, clips in ipairs(importedClips) do
-                print("moving: " .. clips:GetName())
+                --print("moving: " .. clips:GetName())
             end
             mediaPool:MoveClips(importedClips, myFolder)
         end
