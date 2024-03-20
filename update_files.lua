@@ -1,10 +1,43 @@
 local mediaStorage = resolve:GetMediaStorage()
+local mediaPool = resolve:GetProjectManager():GetCurrentProject():GetMediaPool()
 local ui = fu.UIManager
-local Disp = bmd.UIDispatcher(ui)
-local width,height = 500,50
-local run_import = false
+local disp = bmd.UIDispatcher(ui)
+local width,height = 500,200
+local RunImport = false
+local placeholder_text = "D:\\00_Renders\\..."
+local rootFolder = mediaPool:GetRootFolder()
+local topFolders = rootFolder:GetSubFolderList()
 
-function Import_files(path)
+function PrintTable(tbl)
+    for k, v in pairs(tbl) do
+        print(k, v)
+    end
+end
+
+print(rootFolder:GetName())
+
+PrintTable(topFolders)
+
+function FolderExists(folder, myFolders)
+
+    --maybe this should be a while loop?
+    for i, folderObjs in ipairs(myFolders) do
+
+        local folderName = folderObjs:GetName()
+        if folderName == folder then
+            print(folderName)
+            print("folder already exists in project")
+            return true
+        end
+    end
+
+    print("skill issue")
+    return false
+
+end
+
+function ImportFiles(path)
+
     if path and #path > 0 then
         for i, filePath in ipairs(path) do
             print(i .. ": " .. filePath)
@@ -21,14 +54,7 @@ function Import_files(path)
 
 end
 
-
-local is_windows = package.config:sub(1,1) ~= "/"
-local placeholder_text = "/Users/yourname/Resolve Projects/"
-if is_windows == true then
-    placeholder_text = "D:\\00_Renders\\..."
-end
-
-Win = Disp:AddWindow({
+Win = disp:AddWindow({
     ID = "MyWin",
     WindowTitle = "Import files from:",
     Geometry = { 100, 100, width, height },
@@ -37,7 +63,7 @@ Win = Disp:AddWindow({
         ID = "root",
         ui:HGroup{
             ID = "dst",
-            ui:Label{ID = "DstLabel", Text = "Location to write files to:"},
+            ui:Label{ID = "DstLabel", Text = "Import from:"},
             ui:TextEdit{ID = "DstPath", Text = "", PlaceholderText = placeholder_text,}
         },
         ui:HGroup{
@@ -50,43 +76,47 @@ Win = Disp:AddWindow({
 
 --Event handlers
 function Win.On.MyWin.Close(ev)
-    Disp:ExitLoop()
-    run_import = false
+    disp:ExitLoop()
+    RunImport = false
 end
 
 function Win.On.cancelButton.Clicked(ev)
     print("Cancel Clicked")
-    Disp:ExitLoop()
-    run_import = false
+    disp:ExitLoop()
+    RunImport = false
 end
 
 function Win.On.goButton.Clicked(ev)
     print("Go Clicked")
-    Disp:ExitLoop()
-    run_import = true
+    disp:ExitLoop()
+    RunImport = true
 end
 
 Itm = Win:GetItems()
 
 Win:Show()
-Disp:RunLoop()
+disp:RunLoop()
 Win:Hide()
 
-if run_import then
+if RunImport then
 
     local directoryPath = Itm.DstPath.PlainText
 
-    print(directoryPath)
-
-    assert (Itm.DstPath.PlainText ~= nil and Itm.DstPath.PlainText ~= "", "Found empty destination path! Refusing to run")
-
     local folderList = mediaStorage:GetSubFolderList(directoryPath)
 
+    for i, folder in ipairs(folderList) do
 
-    for i, folders in ipairs(folderList) do
-        print(i .. ": " .. folders)
-        local fileList = mediaStorage:GetFileList(folders)
-        Import_files(fileList)
+        local folderName = string.match(folder, "[^\\]+$")
+        print(i .. ": " .. folderName)
+        local checkFolder = FolderExists(folderName, topFolders)
+        if not checkFolder then
+            print("folder doesn't exist yet, creating...")
+            mediaPool:AddSubFolder(rootFolder, folderName)
+        end
+        
+        local fileList = mediaStorage:GetFileList(folder)
+        ImportFiles(fileList)
+
     end
 
 end
