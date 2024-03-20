@@ -8,15 +8,13 @@ local placeholder_text = "D:\\00_Renders\\..."
 local rootFolder = mediaPool:GetRootFolder()
 local topFolders = rootFolder:GetSubFolderList()
 
-function PrintTable(tbl)
-    for k, v in pairs(tbl) do
-        print(k, v)
-    end
-end
+-- function PrintTable(tbl)
+--     for k, v in pairs(tbl) do
+--         print(k, v)
+--     end
+-- end
 
-print(rootFolder:GetName())
-
-PrintTable(topFolders)
+--PrintTable(topFolders)
 
 function RemoveItemFromArray(item, array)
     local index = nil
@@ -66,11 +64,11 @@ function FolderExists(folder, myFolders)
         if folderName == folder then
             print(folderName)
             print("folder already exists in project")
-            return true
+            return folderObjs
         end
     end
 
-    print("skill issue")
+    print("folder doesn't exist")
     return false
 
 end
@@ -87,7 +85,7 @@ end
 
 function ImportFiles(paths)
 
-    PrintTable(paths)
+    --PrintTable(paths)
 
     if paths and #paths > 0 then
         for i, filePath in ipairs(paths) do
@@ -96,6 +94,7 @@ function ImportFiles(paths)
         local addedItems = mediaStorage:AddItemListToMediaPool(paths)
         if addedItems then
             print("files have been added to the Media Pool.")
+            return addedItems
         else
             print("files not added")
         end
@@ -156,17 +155,21 @@ if RunImport then
 
     local folderList = mediaStorage:GetSubFolderList(directoryPath)
 
+    --iterate over folders in target directory
     for i, folder in ipairs(folderList) do
 
         local folderName = string.match(folder, "[^\\]+$")
 
         print(i .. ": " .. folderName)
 
+        local myFolder
         local checkFolder = FolderExists(folderName, topFolders)
-
-        if not checkFolder then
+        --recreate them as project bins if they don't already exist
+        if checkFolder then
+            myFolder = checkFolder
+        else
             print("folder doesn't exist yet, creating...")
-            mediaPool:AddSubFolder(rootFolder, folderName)
+           myFolder = mediaPool:AddSubFolder(rootFolder, folderName)
         end
 
         local fileList = mediaStorage:GetFileList(folder)
@@ -184,7 +187,20 @@ if RunImport then
 
 
 
-        ImportFiles(fileList)
+        local importedClips = ImportFiles(fileList)
+        print(myFolder:GetName())
+
+        -- by default stuff gets imported into a random location based on what's selected
+        --  so move the imported stuff into the appropriate folder
+        if importedClips and #importedClips > 0 then
+
+            for _, clips in ipairs(importedClips) do
+                print("moving: " .. clips:GetName())
+            end
+            mediaPool:MoveClips(importedClips, myFolder)
+        end
+
+        --there's a visual bug where if you move the clips into currently open folder they'll appear duplicate until refresh
 
     end
 
