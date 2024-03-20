@@ -1,3 +1,4 @@
+--todo: checkbox for files vs folders
 local mediaStorage = resolve:GetMediaStorage()
 local mediaPool = resolve:GetProjectManager():GetCurrentProject():GetMediaPool()
 local ui = fu.UIManager
