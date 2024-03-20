@@ -1,4 +1,6 @@
 --todo: checkbox for files vs folders
+--add a goto root folder to fix some potential issues?
+
 local mediaStorage = resolve:GetMediaStorage()
 local mediaPool = resolve:GetProjectManager():GetCurrentProject():GetMediaPool()
 local ui = fu.UIManager
