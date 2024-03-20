@@ -18,6 +18,45 @@ print(rootFolder:GetName())
 
 PrintTable(topFolders)
 
+function RemoveItemFromArray(item, array)
+    local index = nil
+    for i, v in ipairs(array) do
+        if v == item then
+            index = i
+            break
+        end
+    end
+    if index then
+        table.remove(array, index)
+        return true
+    end
+end
+
+
+function GetAllClipsInProject()
+    local allClips = {}
+
+    -- Recursive function to traverse folders
+    local function traverseFolders(folder)
+        -- Get and add all clips in the current folder
+        local clips = folder:GetClipList()
+        for _, clip in ipairs(clips) do
+            table.insert(allClips, clip)
+        end
+
+        -- Recurse into subfolders
+        local subFolders = folder:GetSubFolderList()
+        for _, subFolder in ipairs(subFolders) do
+            traverseFolders(subFolder)
+        end
+    end
+
+    -- Start the recursive traversal from the root folder
+    traverseFolders(rootFolder)
+
+    return allClips
+end
+
 function FolderExists(folder, myFolders)
 
     --maybe this should be a while loop?
@@ -36,13 +75,25 @@ function FolderExists(folder, myFolders)
 
 end
 
-function ImportFiles(path)
+function CheckFiles(fileName, clipList)
+    for _, clips in ipairs(clipList) do
+        local clipName = clips:GetName()
+        if fileName == clipName then
+        return true
+        end
+    end
+    return false
+end
 
-    if path and #path > 0 then
-        for i, filePath in ipairs(path) do
+function ImportFiles(paths)
+
+    PrintTable(paths)
+
+    if paths and #paths > 0 then
+        for i, filePath in ipairs(paths) do
             print(i .. ": " .. filePath)
         end
-        local addedItems = mediaStorage:AddItemListToMediaPool(path)
+        local addedItems = mediaStorage:AddItemListToMediaPool(paths)
         if addedItems then
             print("files have been added to the Media Pool.")
         else
@@ -100,6 +151,7 @@ Win:Hide()
 
 if RunImport then
 
+    local currentClips = GetAllClipsInProject()
     local directoryPath = Itm.DstPath.PlainText
 
     local folderList = mediaStorage:GetSubFolderList(directoryPath)
@@ -107,16 +159,35 @@ if RunImport then
     for i, folder in ipairs(folderList) do
 
         local folderName = string.match(folder, "[^\\]+$")
+
         print(i .. ": " .. folderName)
+
         local checkFolder = FolderExists(folderName, topFolders)
+
         if not checkFolder then
             print("folder doesn't exist yet, creating...")
             mediaPool:AddSubFolder(rootFolder, folderName)
         end
-        
+
         local fileList = mediaStorage:GetFileList(folder)
+
+        for i = #fileList, 1, -1 do
+            local files = fileList[i]
+            local fileName = string.match(files, "[^\\]+$")
+            print("checking " .. fileName)
+            local alreadyExists = CheckFiles(fileName, currentClips)
+            if alreadyExists then
+                print("removed item: " .. fileName)
+                RemoveItemFromArray(files, fileList)
+            end
+        end
+
+
+
         ImportFiles(fileList)
 
     end
 
 end
+
+
