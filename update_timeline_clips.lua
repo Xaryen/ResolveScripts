@@ -145,26 +145,41 @@ for _, item in ipairs(timelineClips) do
 
     table.sort(myTakes, compareFileNames)
 
-    item:AddTake(myTakes[1])
+    print(#myTakes)
+
+    --since there's no way to replace source media (even though the conform lock button in the UI does that)
+    --we use the take selector to load all the takes then select the newest one 
+
+    for i=#myTakes, 1, -1 do
+        item:AddTake(myTakes[i], 8)
+        print("added take")
+
+        
+    end
+    
+    print(myTakes[1]:GetName())
+
+    print(itemName)
+
+    if not (myTakes[1]:GetName() == itemName) then
+        item:SelectTakeByIndex(#myTakes)
+    end
+
+    -- local d = item:GetTakeByIndex(1)
+
+    -- print(d["mediaPoolItem"]:GetName())
+
+    --disabled for now
+    --item:FinalizeTake() 
 
 end
 
 
 
--- AddTake(mediaPoolItem, startFrame, endFrame)	Bool	Adds a new take to take selector. It will initialise this timeline item as take selector if it’s not already one. Arguments startFrame and endFrame are optional, and if not specified the entire clip will be added.
+
+
 -- GetSelectedTakeIndex()	int	Returns the index of currently selected take, or 0 if the clip is not a take selector.
--- GetTakesCount()	int	Returns the number of takes in take selector, or 0 if the clip is not a take selector.
 -- GetTakeByIndex(idx)	{takeInfo...}	Returns a dict (keys “startFrame”, “endFrame” and “mediaPoolItem”) with take info for specified index.
--- DeleteTakeByIndex(idx)	Bool	Deletes a take by index, 1 <= idx <= number of takes.
--- SelectTakeByIndex(idx)	Bool	Selects a take by index, 1 <= idx <= number of takes.
--- FinalizeTake()
+-- GetTakesCount()	int	Returns the number of takes in take selector, or 0 if the clip is not a take selector.
 
-
---get all items in current timeline
-
---for each item get the relevant mediapoolitem
-
---check the allclips list for matching regex
-
---if it finds get highest version elseif get highest timing version 
 
